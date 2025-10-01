@@ -187,13 +187,35 @@ void AVRPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	// Debug functionality can stay here since it's pawn-specific
+	// Debug hand bones
 	if (bDebugHandBones)
 	{
 		if (HandAnimationComponent)
 		{
-			HandAnimationComponent->DebugDrawHandBones(true);  // Right hand
-			HandAnimationComponent->DebugDrawHandBones(false); // Left hand
+			HandAnimationComponent->DebugDrawHandBones(true);
+			HandAnimationComponent->DebugDrawHandBones(false);
+		}
+	}
+	
+	// ✅ NUEVO: Visualizar radio de agarre
+	if (InteractionComponent && GetWorld())
+	{
+		// Right hand grab sphere
+		if (MotionControllerRightGrip)
+		{
+			FVector RightPos = MotionControllerRightGrip->GetComponentLocation();
+			DrawDebugSphere(GetWorld(), RightPos, 30.0f, 12, FColor::Green, false, -1.0f, 0, 2.0f);
+			DrawDebugString(GetWorld(), RightPos + FVector(0, 0, 5), TEXT("R GRAB"), 
+				nullptr, FColor::White, 0.0f, true, 1.0f);
+		}
+		
+		// Left hand grab sphere
+		if (MotionControllerLeftGrip)
+		{
+			FVector LeftPos = MotionControllerLeftGrip->GetComponentLocation();
+			DrawDebugSphere(GetWorld(), LeftPos, 30.0f, 12, FColor::Blue, false, -1.0f, 0, 2.0f);
+			DrawDebugString(GetWorld(), LeftPos + FVector(0, 0, 5), TEXT("L GRAB"), 
+				nullptr, FColor::White, 0.0f, true, 1.0f);
 		}
 	}
 }

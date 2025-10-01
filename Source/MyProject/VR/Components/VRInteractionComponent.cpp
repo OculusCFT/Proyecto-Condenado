@@ -105,48 +105,44 @@ UActorComponent* UVRInteractionComponent::GetGrabComponentNearMotionController(U
 		return nullptr;
 	}
 
-	UActorComponent* NearestComponent = nullptr;
-	float NearestDistance = GrabRadiusFromGripPosition;
 	const FVector ControllerLocation = MotionController->GetComponentLocation();
 
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(GetOwner());
 
-	bool bHasOverlaps = GetWorld()->OverlapMultiByChannel(
+	bool bHasOverlaps = GetWorld()->OverlapMultiByObjectType(
 		OverlapResults,
 		ControllerLocation,
 		FQuat::Identity,
-		ECC_WorldDynamic,
-		FCollisionShape::MakeSphere(GrabRadiusFromGripPosition),
-		QueryParams
+		FCollisionObjectQueryParams(ECC_PhysicsBody),
+		FCollisionShape::MakeSphere(GrabRadiusFromGripPosition)
 	);
 
 	if (bHasOverlaps)
 	{
+		// Simplemente retorna el primer GrabComponent encontrado
+		// Si está en el overlap, está dentro del radio - no necesitamos más validación
 		for (const FOverlapResult& Result : OverlapResults)
 		{
 			if (AActor* OverlappedActor = Result.GetActor())
 			{
-				TArray<UActorComponent*> GrabComponents = OverlappedActor->GetComponentsByTag(UActorComponent::StaticClass(), FName("GrabComponent"));
+				TArray<UActorComponent*> GrabComponents = OverlappedActor->GetComponentsByTag(
+					UActorComponent::StaticClass(), 
+					FName("GrabComponent")
+				);
 				
-				for (UActorComponent* Component : GrabComponents)
+				if (GrabComponents.Num() > 0 && IsValid(GrabComponents[0]))
 				{
-					if (Component && IsValid(Component))
-					{
-						float Distance = FVector::Dist(ControllerLocation, Component->GetOwner()->GetActorLocation());
-						if (Distance < NearestDistance)
-						{
-							NearestDistance = Distance;
-							NearestComponent = Component;
-						}
-					}
+					UE_LOG(LogTemp, Log, TEXT("✓ VRInteraction: GRABBING %s"), *OverlappedActor->GetName());
+					return GrabComponents[0];
 				}
 			}
 		}
 	}
 
-	return NearestComponent;
+	UE_LOG(LogTemp, Warning, TEXT("✗ VRInteraction: No grabbable found"));
+	return nullptr;
 }
 
 bool UVRInteractionComponent::TryGrabComponent(UActorComponent* GrabComponent, UMotionControllerComponent* MotionController)

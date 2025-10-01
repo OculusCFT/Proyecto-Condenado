@@ -16,7 +16,8 @@ public class MyProject : ModuleRules
 			"XRBase",
 			"NavigationSystem",
 			"Niagara",
-			"EnhancedInput"
+			"EnhancedInput",
+			"PhysicsCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] 
