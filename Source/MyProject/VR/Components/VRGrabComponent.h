@@ -6,6 +6,9 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "VRGrabComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnToolGrabbed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnToolReleased);
+
 UENUM(BlueprintType)
 enum class EGrabType : uint8
 {
@@ -22,10 +25,17 @@ class MYPROJECT_API UVRGrabComponent : public UActorComponent
 public:
     UVRGrabComponent();
 
-protected:
-    // Configuration
+    UPROPERTY(BlueprintAssignable, Category = "VR Grab Events")
+    FOnToolGrabbed OnToolGrabbed;
+
+    UPROPERTY(BlueprintAssignable, Category = "VR Grab Events")
+    FOnToolReleased OnToolReleased;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Grab Config")
     EGrabType GrabType = EGrabType::Attach;
+
+protected:
+    // Configuration
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Grab Config")
     bool bSimulatePhysicsOnDrop = true;

@@ -64,6 +64,9 @@ bool UVRGrabComponent::TryGrab(UMotionControllerComponent* Controller)
         break;
     }
 
+    // Broadcast grab event
+    OnToolGrabbed.Broadcast();
+
     UE_LOG(LogTemp, Log, TEXT("VRGrabComponent: Object grabbed - %s"), *GetOwner()->GetName());
     return true;
 }
@@ -93,6 +96,9 @@ bool UVRGrabComponent::TryRelease()
     bIsGrabbed = false;
     GrabbingController = nullptr;
     SetComponentTickEnabled(false);
+
+    // Broadcast release event
+    OnToolReleased.Broadcast();
 
     UE_LOG(LogTemp, Log, TEXT("VRGrabComponent: Object released - %s"), *GetOwner()->GetName());
     return true;
