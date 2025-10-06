@@ -127,7 +127,6 @@ bool UVRDiggingToolComponent::TryDigAtLocation(const FVector& Location)
 
 						// Feedback visual
 						DrawDebugSphere(GetWorld(), Location, DigRadius, 12, FColor::Red, false, 1.0f, 0, 3.0f);
-
 						UE_LOG(LogTemp, Log, TEXT("DiggingTool: Dug at %s with velocity %.2f"), 
 							*Location.ToString(), CurrentTipVelocity.Size());
 
