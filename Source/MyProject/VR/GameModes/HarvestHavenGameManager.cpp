@@ -51,7 +51,7 @@ void AHarvestHavenGameManager::InitializeDefaultCropDatabase()
 	FCropInfo Zanahoria;
 	Zanahoria.CropType = ECultivoType::Zanahoria;
 	Zanahoria.CropName = TEXT("Zanahoria");
-	Zanahoria.GrowthTimeSeconds = 120; // 2 minutos
+	Zanahoria.GrowthTimeSeconds = 120;
 	Zanahoria.SellPrice = 20;
 	Zanahoria.SeedCost = 10;
 	Zanahoria.RequiredLevel = 1;
@@ -61,17 +61,17 @@ void AHarvestHavenGameManager::InitializeDefaultCropDatabase()
 	FCropInfo Tomate;
 	Tomate.CropType = ECultivoType::Tomate;
 	Tomate.CropName = TEXT("Tomate");
-	Tomate.GrowthTimeSeconds = 180; // 3 minutos
+	Tomate.GrowthTimeSeconds = 180;
 	Tomate.SellPrice = 30;
 	Tomate.SeedCost = 15;
 	Tomate.RequiredLevel = 1;
 	CropDatabase.Add(Tomate);
 
-	// Calabaza - Nivel 2
+	// CALABAZA - Nivel 2
 	FCropInfo Calabaza;
 	Calabaza.CropType = ECultivoType::Calabaza;
 	Calabaza.CropName = TEXT("Calabaza");
-	Calabaza.GrowthTimeSeconds = 240; // 4 minutos
+	Calabaza.GrowthTimeSeconds = 240;
 	Calabaza.SellPrice = 50;
 	Calabaza.SeedCost = 25;
 	Calabaza.RequiredLevel = 2;
@@ -81,7 +81,7 @@ void AHarvestHavenGameManager::InitializeDefaultCropDatabase()
 	FCropInfo Maiz;
 	Maiz.CropType = ECultivoType::Maiz;
 	Maiz.CropName = TEXT("Maíz");
-	Maiz.GrowthTimeSeconds = 200; // 3.3 minutos
+	Maiz.GrowthTimeSeconds = 200;
 	Maiz.SellPrice = 40;
 	Maiz.SeedCost = 20;
 	Maiz.RequiredLevel = 2;
@@ -91,7 +91,7 @@ void AHarvestHavenGameManager::InitializeDefaultCropDatabase()
 	FCropInfo Exotico;
 	Exotico.CropType = ECultivoType::Exotico;
 	Exotico.CropName = TEXT("Planta Exótica");
-	Exotico.GrowthTimeSeconds = 360; // 6 minutos
+	Exotico.GrowthTimeSeconds = 360;
 	Exotico.SellPrice = 100;
 	Exotico.SeedCost = 50;
 	Exotico.RequiredLevel = 3;

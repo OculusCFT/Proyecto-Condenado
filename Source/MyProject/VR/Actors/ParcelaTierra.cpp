@@ -99,15 +99,15 @@ bool AParcelaTierra::PlantCrop(TSubclassOf<ACultivo> CultivoClass, ECultivoType 
 	}
 
 	// Configurar cultivo
-	NewCultivo->StartGrowth();
+	NewCultivo->TipoCultivo = TipoCultivo;
 	
 	// Obtener datos del GameManager si está disponible
 	if (AHarvestHavenGameManager* GameManager = Cast<AHarvestHavenGameManager>(
 		UGameplayStatics::GetGameMode(this)))
 	{
-		FCultivoInfo Info = GameManager->GetCultivoInfo(TipoCultivo);
-		NewCultivo->TiempoCrecimientoSegundos = Info.TiempoCrecimientoSegundos;
-		NewCultivo->ValorCosecha = Info.ValorCosecha;
+		FCropInfo Info = GameManager->GetCropInfo(TipoCultivo);
+		NewCultivo->TiempoCrecimientoSegundos = Info.GrowthTimeSeconds;
+		NewCultivo->ValorCosecha = Info.SellPrice;
 	}
 
 	// Iniciar crecimiento

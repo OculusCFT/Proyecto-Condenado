@@ -33,9 +33,9 @@ void ACultivo::BeginPlay()
 	if (AHarvestHavenGameManager* GameManager = Cast<AHarvestHavenGameManager>(
 		UGameplayStatics::GetGameMode(this)))
 	{
-		FCultivoInfo Info = GameManager->GetCultivoInfo(TipoCultivo);
-		TiempoCrecimientoSegundos = Info.TiempoCrecimientoSegundos;
-		ValorCosecha = Info.ValorCosecha;
+		FCropInfo Info = GameManager->GetCropInfo(TipoCultivo);
+		TiempoCrecimientoSegundos = Info.GrowthTimeSeconds;
+		ValorCosecha = Info.SellPrice;
 	}
 
 	// Registrar tiempo inicial de riego
