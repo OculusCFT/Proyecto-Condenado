@@ -75,4 +75,4 @@ void ADiggingTool::OnReleased()
 	{
 		DiggingComponent->StopDigging();
 	}
-}
+}	
