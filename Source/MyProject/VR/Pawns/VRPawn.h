@@ -29,6 +29,11 @@ class MYPROJECT_API AVRPawn : public APawn
 
 public:
 	AVRPawn();
+	
+	// Tipo de movimiento: false = Teleport, true = Smooth
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Locomotion")
+	bool bUseSmoothLocomotion = true;
+
 
 protected:
 	// VR Core Components
@@ -101,11 +106,48 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Debug")
 	bool bDebugHandBones = true;
 
+	// ============================================================
+	// LOCOMOTION CONFIG
+	// ============================================================
+	
+
+	// Velocidad de movimiento (cm/s)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Locomotion")
+	float MovementSpeed = 100.0f;
+
+	// Threshold mínimo del joystick para iniciar movimiento
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Locomotion")
+	float MovementThreshold = 0.2f;
+
 public:
+	// ============================================================
+	// LOCOMOTION STATE (public para que VRInputComponent pueda modificarlo)
+	// ============================================================
+	
+	// Estado actual del movimiento
+	UPROPERTY(BlueprintReadOnly, Category = "VR Locomotion")
+	FVector2D CurrentMovementInput;
+
+	// ============================================================
+	// LIFECYCLE
+	// ============================================================
+	
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
+
+	// ============================================================
+	// SMOOTH LOCOMOTION
+	// ============================================================
+	
+	// Aplicar movimiento suave basado en input del joystick
+	UFUNCTION(BlueprintCallable, Category = "VR Locomotion")
+	void ApplySmoothMovement(FVector2D MovementInput, float DeltaTime);
+
+	// Obtener dirección de movimiento basada en la cámara
+	UFUNCTION(BlueprintPure, Category = "VR Locomotion")
+	FVector GetCameraRelativeMovementDirection(FVector2D Input) const;
 
 	// Component Getters
 	UFUNCTION(BlueprintPure, Category = "VR Components")

@@ -33,11 +33,6 @@ void UVRInputComponent::SetupInputBindings(UInputComponent* PlayerInputComponent
 			EnhancedInputComponent->BindAction(IA_Move, ETriggerEvent::Completed, this, &UVRInputComponent::OnMoveCompleted);
 		}
 
-		if (IA_Turn)
-		{
-			EnhancedInputComponent->BindAction(IA_Turn, ETriggerEvent::Triggered, this, &UVRInputComponent::OnTurnTriggered);
-		}
-
 		// Grab actions
 		if (IA_Grab_Left_Pressed)
 		{
@@ -124,44 +119,97 @@ void UVRInputComponent::SetupInputBindings(UInputComponent* PlayerInputComponent
 	}
 }
 
-// INPUT EVENT HANDLERS
+// ============================================================
+// MOVEMENT INPUT HANDLERS - MODIFICADO PARA SMOOTH LOCOMOTION
+// ============================================================
 
 void UVRInputComponent::OnMoveStarted(const FInputActionValue& Value)
 {
-	if (TeleportComponent)
+	if (!OwnerPawn)
 	{
-		TeleportComponent->StartTeleportTrace();
+		return;
+	}
+
+	// Verificar modo de movimiento
+	if (OwnerPawn->bUseSmoothLocomotion)
+	{
+		// Modo smooth: iniciar movimiento continuo
+		const FVector2D MovementVector = Value.Get<FVector2D>();
+		OwnerPawn->CurrentMovementInput = MovementVector;
+		
+		UE_LOG(LogTemp, Verbose, TEXT("Smooth Movement Started: X=%.2f Y=%.2f"), 
+			MovementVector.X, MovementVector.Y);
+	}
+	else
+	{
+		// Modo teleport: iniciar trace
+		if (TeleportComponent)
+		{
+			TeleportComponent->StartTeleportTrace();
+		}
 	}
 }
 
 void UVRInputComponent::OnMoveTriggered(const FInputActionValue& Value)
 {
-	if (TeleportComponent && OwnerPawn)
+	if (!OwnerPawn)
 	{
-		if (UMotionControllerComponent* RightAimController = OwnerPawn->GetRightAimController())
+		return;
+	}
+
+	// Verificar modo de movimiento
+	if (OwnerPawn->bUseSmoothLocomotion)
+	{
+		// Modo smooth: actualizar dirección de movimiento
+		const FVector2D MovementVector = Value.Get<FVector2D>();
+		OwnerPawn->CurrentMovementInput = MovementVector;
+		
+		// El movimiento real se aplica en VRPawn::Tick()
+	}
+	else
+	{
+		// Modo teleport: actualizar trace
+		if (TeleportComponent && OwnerPawn)
 		{
-			const FVector StartPos = RightAimController->GetComponentLocation();
-			const FVector ForwardVector = RightAimController->GetForwardVector();
-			TeleportComponent->UpdateTeleportTrace(StartPos, ForwardVector);
+			if (UMotionControllerComponent* RightAimController = OwnerPawn->GetRightAimController())
+			{
+				const FVector StartPos = RightAimController->GetComponentLocation();
+				const FVector ForwardVector = RightAimController->GetForwardVector();
+				TeleportComponent->UpdateTeleportTrace(StartPos, ForwardVector);
+			}
 		}
 	}
 }
 
 void UVRInputComponent::OnMoveCompleted(const FInputActionValue& Value)
 {
-	if (TeleportComponent)
+	if (!OwnerPawn)
 	{
-		TeleportComponent->EndTeleportTrace();
-		TeleportComponent->TryExecuteTeleport();
+		return;
+	}
+
+	// Verificar modo de movimiento
+	if (OwnerPawn->bUseSmoothLocomotion)
+	{
+		// Modo smooth: detener movimiento
+		OwnerPawn->CurrentMovementInput = FVector2D::ZeroVector;
+		
+		UE_LOG(LogTemp, Verbose, TEXT("Smooth Movement Stopped"));
+	}
+	else
+	{
+		// Modo teleport: ejecutar teletransporte
+		if (TeleportComponent)
+		{
+			TeleportComponent->EndTeleportTrace();
+			TeleportComponent->TryExecuteTeleport();
+		}
 	}
 }
 
-void UVRInputComponent::OnTurnTriggered(const FInputActionValue& Value)
-{
-	const float TurnValue = Value.Get<float>();
-	const bool bRightTurn = TurnValue > 0.0f;
-	PerformSnapTurn(bRightTurn);
-}
+// ============================================================
+// GRAB INPUT HANDLERS
+// ============================================================
 
 void UVRInputComponent::OnGrabLeftPressed(const FInputActionValue& Value)
 {
@@ -213,43 +261,24 @@ void UVRInputComponent::OnHandGraspLeft(const FInputActionValue& Value)
 	}
 }
 
-void UVRInputComponent::PerformSnapTurn(bool bRightTurn)
-{
-	if (!OwnerPawn)
-	{
-		return;
-	}
-
-	const float SnapTurnDegrees = 45.0f; // Could be made configurable
-	const float TurnDirection = bRightTurn ? 1.0f : -1.0f;
-	const float TurnAmount = SnapTurnDegrees * TurnDirection;
-
-	// Get VROrigin from the pawn
-	if (USceneComponent* VROrigin = OwnerPawn->GetRootComponent())
-	{
-		FRotator CurrentRotation = VROrigin->GetComponentRotation();
-		CurrentRotation.Yaw += TurnAmount;
-		VROrigin->SetWorldRotation(CurrentRotation);
-
-		UE_LOG(LogTemp, Log, TEXT("VRInputComponent: Snap turn performed - Direction: %s, Amount: %.1f degrees"), 
-			bRightTurn ? TEXT("Right") : TEXT("Left"), SnapTurnDegrees);
-	}
-}
-
+// ============================================================
 // MENU INPUT HANDLERS
+// ============================================================
+
 void UVRInputComponent::OnMenuToggleLeft(const FInputActionValue& Value)
 {
-	// TODO: Implement menu system when UI components are created
 	UE_LOG(LogTemp, Log, TEXT("VRInputComponent: Left menu toggle pressed"));
 }
 
 void UVRInputComponent::OnMenuToggleRight(const FInputActionValue& Value)
 {
-	// TODO: Implement menu system when UI components are created
 	UE_LOG(LogTemp, Log, TEXT("VRInputComponent: Right menu toggle pressed"));
 }
 
+// ============================================================
 // HAND ANIMATION INPUT HANDLERS
+// ============================================================
+
 void UVRInputComponent::OnHandThumbUpRightStarted(const FInputActionValue& Value)
 {
 	if (HandAnimationComponent)

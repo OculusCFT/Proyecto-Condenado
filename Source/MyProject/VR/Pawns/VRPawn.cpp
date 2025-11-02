@@ -8,11 +8,15 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
 AVRPawn::AVRPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	SetupComponentHierarchy();
+	
+	// Inicializar estado de movimiento
+	CurrentMovementInput = FVector2D::ZeroVector;
 }
 
 void AVRPawn::SetupComponentHierarchy()
@@ -94,7 +98,10 @@ void AVRPawn::BeginPlay()
 		
 		InitializeVRComponents();
 		
-		UE_LOG(LogTemp, Log, TEXT("VRPawn: VR initialization completed successfully"));
+		UE_LOG(LogTemp, Warning, TEXT("=== VR INITIALIZED ==="));
+		UE_LOG(LogTemp, Warning, TEXT("Locomotion Mode: %s"), 
+			bUseSmoothLocomotion ? TEXT("SMOOTH") : TEXT("TELEPORT"));
+		UE_LOG(LogTemp, Warning, TEXT("Movement Speed: %.0f cm/s"), MovementSpeed);
 	}
 	else
 	{
@@ -114,10 +121,7 @@ void AVRPawn::InitializeVRComponents()
 	if (HandAnimationComponent)
 	{
 		HandAnimationComponent->SetHandMeshes(HandRight, HandLeft);
-		
-		// ✅ CRÍTICO: Llamar SetupHandAnimBP DESPUÉS de SetHandMeshes
 		HandAnimationComponent->SetupHandAnimBP();
-		
 		UE_LOG(LogTemp, Warning, TEXT("VRPawn: Hand animation setup initiated"));
 	}
 
@@ -197,7 +201,7 @@ void AVRPawn::Tick(float DeltaTime)
 		}
 	}
 	
-	// ✅ NUEVO: Visualizar radio de agarre
+	// Visualizar radio de agarre
 	if (InteractionComponent && GetWorld())
 	{
 		// Right hand grab sphere
@@ -218,10 +222,86 @@ void AVRPawn::Tick(float DeltaTime)
 				nullptr, FColor::White, 0.0f, true, 1.0f);
 		}
 	}
+
+	// ============================================================
+	// SMOOTH LOCOMOTION - Aplicar movimiento cada frame
+	// ============================================================
+	
+	if (bUseSmoothLocomotion)
+	{
+		// Aplicar movimiento si hay input
+		if (!CurrentMovementInput.IsNearlyZero(MovementThreshold))
+		{
+			ApplySmoothMovement(CurrentMovementInput, DeltaTime);
+		}
+	}
 }
 
 void AVRPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// Components will clean themselves up automatically
 	Super::EndPlay(EndPlayReason);
+}
+
+// ============================================================
+// SMOOTH LOCOMOTION IMPLEMENTATION
+// ============================================================
+
+void AVRPawn::ApplySmoothMovement(FVector2D MovementInput, float DeltaTime)
+{
+	if (!VROrigin || !Camera)
+	{
+		return;
+	}
+
+	// Obtener dirección de movimiento relativa a donde mira la cámara
+	FVector MovementDirection = GetCameraRelativeMovementDirection(MovementInput);
+
+	// Calcular desplazamiento
+	FVector Displacement = MovementDirection * MovementSpeed * DeltaTime;
+
+	// Aplicar movimiento al VROrigin (root)
+	FVector NewLocation = VROrigin->GetComponentLocation() + Displacement;
+	VROrigin->SetWorldLocation(NewLocation);
+
+	// Debug visual
+	if (GetWorld())
+	{
+		FVector DebugStart = VROrigin->GetComponentLocation();
+		FVector DebugEnd = DebugStart + MovementDirection * 100.0f;
+		DrawDebugLine(GetWorld(), DebugStart, DebugEnd, FColor::Yellow, false, -1.0f, 0, 2.0f);
+	}
+}
+
+FVector AVRPawn::GetCameraRelativeMovementDirection(FVector2D Input) const
+{
+	if (!Camera)
+	{
+		return FVector::ForwardVector;
+	}
+
+	// DEBUG: Ver valores de input
+	UE_LOG(LogTemp, Warning, TEXT("Input RAW: X=%.2f Y=%.2f"), Input.X, Input.Y);
+
+	// Obtener rotación de la cámara (solo Yaw, ignorar Pitch y Roll)
+	FRotator CameraRotation = Camera->GetComponentRotation();
+	CameraRotation.Pitch = 0.0f;
+	CameraRotation.Roll = 0.0f;
+
+	// Obtener direcciones base
+	FVector ForwardDir = CameraRotation.RotateVector(FVector::ForwardVector);
+	FVector RightDir = CameraRotation.RotateVector(FVector::RightVector);
+
+	// CORREGIDO: -Y=Forward, -X=Right
+	// Tus valores tienen Y invertido (adelante da negativo)
+	// y X también parece invertido
+	FVector MovementDirection = (ForwardDir * Input.Y) + (RightDir * Input.X);
+
+	MovementDirection.Z = 0.0f;
+	MovementDirection.Normalize();
+
+	// DEBUG: Ver dirección resultante
+	UE_LOG(LogTemp, Warning, TEXT("Movement Direction: X=%.2f Y=%.2f Z=%.2f"), 
+		MovementDirection.X, MovementDirection.Y, MovementDirection.Z);
+
+	return MovementDirection;
 }

@@ -22,7 +22,10 @@ public:
 	UVRInputComponent();
 
 protected:
-	// Input Actions
+	// ============================================================
+	// INPUT ACTIONS
+	// ============================================================
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR Input Actions")
 	UInputAction* IA_Move;
 
@@ -71,18 +74,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR Input Actions")
 	UInputAction* IA_Hand_IndexCurl_Left;
 
-	// Configuration
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VR Hand Config")
-	TSubclassOf<UAnimInstance> HandAnimBPClass;
-
-	// References
-	UPROPERTY()
-	USkeletalMeshComponent* HandRight = nullptr;
-
-	UPROPERTY()
-	USkeletalMeshComponent* HandLeft = nullptr;
-
-	// Component References
+	// ============================================================
+	// COMPONENT REFERENCES
+	// ============================================================
+	
 	UPROPERTY()
 	UVRTeleportComponent* TeleportComponent = nullptr;
 
@@ -96,7 +91,10 @@ protected:
 	AVRPawn* OwnerPawn = nullptr;
 
 public:
-	// Setup
+	// ============================================================
+	// SETUP
+	// ============================================================
+	
 	UFUNCTION(BlueprintCallable, Category = "VR Input")
 	void Initialize(UVRTeleportComponent* TeleportComp, UVRInteractionComponent* InteractionComp, 
 					UVRHandAnimationComponent* HandAnimComp, AVRPawn* Pawn);
@@ -104,7 +102,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "VR Input")
 	void SetupInputBindings(UInputComponent* PlayerInputComponent);
 
-	// Input Event Handlers
+	// ============================================================
+	// INPUT EVENT HANDLERS
+	// ============================================================
+	
 	UFUNCTION()
 	void OnMoveStarted(const FInputActionValue& Value);
 
@@ -113,9 +114,6 @@ public:
 
 	UFUNCTION()
 	void OnMoveCompleted(const FInputActionValue& Value);
-
-	UFUNCTION()
-	void OnTurnTriggered(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnGrabLeftPressed(const FInputActionValue& Value);
@@ -170,7 +168,4 @@ public:
 
 	UFUNCTION()
 	void OnHandIndexCurlLeft(const FInputActionValue& Value);
-	
-private:
-	void PerformSnapTurn(bool bRightTurn);
 };
