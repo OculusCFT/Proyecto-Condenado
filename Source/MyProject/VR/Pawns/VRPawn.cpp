@@ -24,7 +24,8 @@ void AVRPawn::SetupComponentHierarchy()
 	// VR Origin
 	VROrigin = CreateDefaultSubobject<USceneComponent>(TEXT("VROrigin"));
 	RootComponent = VROrigin;
-
+	VROrigin->SetRelativeLocation(FVector(0.0f, 0.0f, -88.0f));
+	
 	// Camera
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(VROrigin);
@@ -191,16 +192,6 @@ void AVRPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	// Debug hand bones
-	if (bDebugHandBones)
-	{
-		if (HandAnimationComponent)
-		{
-			HandAnimationComponent->DebugDrawHandBones(true);
-			HandAnimationComponent->DebugDrawHandBones(false);
-		}
-	}
-	
 	// Visualizar radio de agarre
 	if (InteractionComponent && GetWorld())
 	{
@@ -208,18 +199,12 @@ void AVRPawn::Tick(float DeltaTime)
 		if (MotionControllerRightGrip)
 		{
 			FVector RightPos = MotionControllerRightGrip->GetComponentLocation();
-			DrawDebugSphere(GetWorld(), RightPos, 30.0f, 12, FColor::Green, false, -1.0f, 0, 2.0f);
-			DrawDebugString(GetWorld(), RightPos + FVector(0, 0, 5), TEXT("R GRAB"), 
-				nullptr, FColor::White, 0.0f, true, 1.0f);
 		}
 		
 		// Left hand grab sphere
 		if (MotionControllerLeftGrip)
 		{
-			FVector LeftPos = MotionControllerLeftGrip->GetComponentLocation();
-			DrawDebugSphere(GetWorld(), LeftPos, 30.0f, 12, FColor::Blue, false, -1.0f, 0, 2.0f);
-			DrawDebugString(GetWorld(), LeftPos + FVector(0, 0, 5), TEXT("L GRAB"), 
-				nullptr, FColor::White, 0.0f, true, 1.0f);
+			FVector LeftPos = MotionControllerLeftGrip->GetComponentLocation();	
 		}
 	}
 
@@ -262,14 +247,6 @@ void AVRPawn::ApplySmoothMovement(FVector2D MovementInput, float DeltaTime)
 	// Aplicar movimiento al VROrigin (root)
 	FVector NewLocation = VROrigin->GetComponentLocation() + Displacement;
 	VROrigin->SetWorldLocation(NewLocation);
-
-	// Debug visual
-	if (GetWorld())
-	{
-		FVector DebugStart = VROrigin->GetComponentLocation();
-		FVector DebugEnd = DebugStart + MovementDirection * 100.0f;
-		DrawDebugLine(GetWorld(), DebugStart, DebugEnd, FColor::Yellow, false, -1.0f, 0, 2.0f);
-	}
 }
 
 FVector AVRPawn::GetCameraRelativeMovementDirection(FVector2D Input) const
